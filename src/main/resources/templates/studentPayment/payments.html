@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head lang="en">
+    <title>Payments Search</title>
+    <th:block th:include="index"></th:block>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Attach an event listener to the input field
+            $('#studentIdInput').on('input', function () {
+                // Get the value entered by the user
+                var inputValue = $(this).val();
+
+                // Make an AJAX request to fetch matching student IDs
+                $.ajax({
+                    url: '/search',  // Replace with the actual endpoint for fetching student IDs
+                    method: 'GET',
+                    data: {query: inputValue},
+                    success: function (data) {
+                        // Update the autocomplete dropdown with the fetched student IDs
+                        updateAutocomplete(data);
+                    },
+                    error: function () {
+                        // Handle error (display an error message, etc.)
+                        console.log('Error fetching student IDs');
+                    }
+                });
+            });
+
+            // Function to update the autocomplete dropdown
+            function updateAutocomplete(studentIds) {
+                // If student IDs are found, populate the dropdown
+                if (studentIds.length > 0) {
+                    let optionsHtml = studentIds.map(function(studentId) {
+                        return '<option value="' + studentId + '">';
+                    }).join('');
+                    $('#autocompleteDropdown').html(optionsHtml);
+                } else {
+                    // If no student IDs found, display an error message
+                    $('#autocompleteDropdown').html('<option value="No IDs found" disabled>');
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+
+<div class="container text-center">
+    <div class="row">
+        <div th:replace="fragments/left-sidebar :: left-sidebar-content"></div>
+        <div class="col-sm-8">
+            <h2>Search Payment</h2>
+            <form class="d-flex" role="search">
+                <input id="studentIdInput" class="form-control me-2" type="search" placeholder="Student ID" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+                <!-- Autocomplete dropdown -->
+                <datalist id="autocompleteDropdown"></datalist>
+            </form>
+        </div>
+        <div th:replace="fragments/right-sidebar :: right-sidebar-content"></div>
+    </div>
+</div>
+
+</body>
+</html>

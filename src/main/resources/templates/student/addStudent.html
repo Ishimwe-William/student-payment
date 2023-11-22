@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+    <title>Student Information</title>
+    <th:block th:include="index"></th:block>
+</head>
+<body>
+
+<div class="container text-center">
+    <div class="row">
+        <div th:replace="fragments/left-sidebar :: left-sidebar-content"></div>
+        <div class="col-sm-8">
+            <!-- -->
+            <h2>Student Information</h2>
+            <div>
+                <form class="row g-3" th:object="${student}" th:action="@{/student}" method="post">
+                    <div class="col-md-12">
+                        <input type="hidden"  class="form-control" th:field="${student.id}"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id" class="form-label">First Name:</label>
+                        <input type="text" class="form-control" id="id" th:field="${student.firstName}" required/>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="lastName" class="form-label">Last Name:</label>
+                        <input type="text" class="form-control" id="lastName" th:field="${student.lastName}" required/>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="regNo" class="form-label">Student ID:</label>
+                        <input type="text" class="form-control" id="regNo" th:field="${student.regNo}" required/>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Email:</label>
+                        <input type="email" class="form-control" id="email" th:field="${student.email}" required/>
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-outline-primary">Save</button>
+                        <a class="btn btn-outline-secondary" th:href="@{/students}" href="/students">Back</a>
+                    </div>
+                </form>
+            </div>
+            <!-- -->
+        </div>
+        <div th:replace="fragments/right-sidebar :: right-sidebar-content"></div>
+    </div>
+</div>
+
+</body>
+</html>
