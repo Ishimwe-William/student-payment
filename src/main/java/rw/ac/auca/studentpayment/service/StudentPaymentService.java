@@ -1,6 +1,7 @@
 package rw.ac.auca.studentpayment.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import rw.ac.auca.studentpayment.repository.Model.Student;
 import rw.ac.auca.studentpayment.repository.Model.StudentPayment;
@@ -37,4 +38,8 @@ public class StudentPaymentService {
         return studentPaymentRepo.findById(id);
     }
 
+    public List<StudentPayment> findPaymentsByRegNo(String regNo) {
+        List<StudentPayment> studentPayments=studentPaymentRepo.findAllByStudent_RegNo(regNo);
+        return studentPayments;
+    }
 }

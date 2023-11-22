@@ -21,29 +21,30 @@ public class StudentPaymentController {
 
     private StudentService studentService;
 
+    @Autowired
     public StudentPaymentController(StudentPaymentService studentPaymentService, StudentService studentService) {
         this.studentPaymentService = studentPaymentService;
         this.studentService = studentService;
     }
 
     @GetMapping("/payments")
-    public String showPaymentPage(){
+    public String showPaymentPage() {
         return "studentPayment/payments";
     }
 
     @RequestMapping(value = "/search")
     @ResponseBody
-    public List<String> getStudentId(@RequestParam(value = "query", required = false, defaultValue = "")String query){
+    public List<String> getStudentId(@RequestParam(value = "query", required = false, defaultValue = "") String query) {
         List<String> ids = studentService.findMatchingStudentIds(query);
         return ids;
     }
 
     @GetMapping("/getStudentInfo")
     @ResponseBody
-    public ResponseEntity<?> getStudentInfo(@RequestParam String studentId) {
+    public ResponseEntity<?> getStudentInfo(@RequestParam String regNo) {
         try {
-            Optional<Student> student = studentService.findMatchingStudentInfo(studentId);
-            if (student!=null) {
+            Optional<Student> student = studentService.findMatchingStudentInfo(regNo);
+            if (student != null) {
                 return new ResponseEntity<>(student, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Student not found", HttpStatus.NOT_FOUND);
@@ -53,21 +54,18 @@ public class StudentPaymentController {
         }
     }
 
-    @GetMapping("/student-payments/{id}")
-    public String getAllStudentPayments(Model model, @PathVariable String id){
-        model.addAttribute("payments",studentPaymentService.findPaymentsById(id));
-        return "studentPayment/student-payments";
+    @GetMapping("/student-payments")
+    public String getStudentPayments(@RequestParam String id, Model model) {
+        List<StudentPayment> payments = studentPaymentService.findPaymentsByRegNo(id);
+        model.addAttribute("payments", payments);
+        return "studentPayment/payments";
     }
 
-    @GetMapping(path = "/student-payments/add/{id}")
-    public String addPayment(Model model, @PathVariable String id){
-        model.addAttribute("payment",new StudentPayment());
-        return "studentPayment/new-payment";
+    @GetMapping("/payments/recent")
+    public String getRecentPayments(Model model) {
+        List<StudentPayment> recentPayments = studentPaymentService.findAllPayments();
+        model.addAttribute("payments", recentPayments);
+        return "fragments/left-sidebar :: left-sidebar-content";
     }
 
-    @PostMapping(path = "/payment")
-    public String savePayment(StudentPayment payment){
-        studentPaymentService.createStudentPayment(payment);
-        return "redirect:/student-payments/{id}";
-    }
 }
