@@ -35,11 +35,9 @@ public class StudentService {
     }
 
     public List<String> findMatchingStudentIds(String query) {
-        List<Student> matchingStudents = studentRepo.findByRegNoContainingIgnoreCase(query);
-
-        // Extract student IDs from matching students and return as a List<String>
-        return matchingStudents.stream()
-                .map(Student::getRegNo)
-                .collect(Collectors.toList());
+        return studentRepo.getMatchingStudentIds(query);
+    }
+    public Optional<Student> findMatchingStudentInfo(String query) {
+        return studentRepo.getMatchingStudentInfo(query);
     }
 }

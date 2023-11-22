@@ -1,49 +1,110 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head lang="en">
-    <title>Payments Search</title>
+    <title>Payments</title>
     <th:block th:include="index"></th:block>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
     <script>
         $(document).ready(function () {
+            // Create the autocomplete results container and append it as a sibling to the search box
+            let autocompleteContainer = $('<ul id="autocompleteResults" class="list-group position-absolute mt-1"></ul>');
+            $('#studentIdInput').after(autocompleteContainer);
+
             // Attach an event listener to the input field
             $('#studentIdInput').on('input', function () {
-                // Get the value entered by the user
-                var inputValue = $(this).val();
+                // Get the trimmed value entered by the user (ignoring leading and trailing spaces)
+                let inputValue = $(this).val().trim();
 
-                // Make an AJAX request to fetch matching student IDs
-                $.ajax({
-                    url: '/search',  // Replace with the actual endpoint for fetching student IDs
-                    method: 'GET',
-                    data: {query: inputValue},
-                    success: function (data) {
-                        // Update the autocomplete dropdown with the fetched student IDs
-                        updateAutocomplete(data);
-                    },
-                    error: function () {
-                        // Handle error (display an error message, etc.)
-                        console.log('Error fetching student IDs');
-                    }
-                });
+                // Check if the trimmed input value meets the minimum length requirement
+                if (inputValue.length >= 1) {
+                    // Make an AJAX request to fetch matching student IDs
+                    $.ajax({
+                        url: '/search',  // Replace with the actual endpoint for fetching student IDs
+                        method: 'GET',
+                        data: {query: inputValue},
+                        success: function (data) {
+                            // Update the autocomplete results with the fetched student IDs (limited to 10)
+                            updateAutocompleteResults(data.slice(0, 10));
+                        },
+                        error: function () {
+                            // Handle error (display an error message, etc.)
+                            console.log('Error fetching student IDs');
+                        }
+                    });
+
+                    // Make a new AJAX request to fetch student information based on the searched ID
+                    $.ajax({
+                        url: '/getStudentInfo',  // Replace with the actual endpoint for fetching student information
+                        method: 'GET',
+                        data: {studentId: inputValue},
+                        success: function (studentInfo) {
+                            // Update the student information container
+                            updateStudentInfo(studentInfo);
+                        },
+                        error: function () {
+                            // Handle error (display an error message, etc.)
+                            console.log('Error fetching student information');
+                        }
+                    });
+                } else {
+                    // Clear the autocomplete results if the trimmed input length is less than the minimum
+                    autocompleteContainer.empty();
+                }
             });
 
-            // Function to update the autocomplete dropdown
-            function updateAutocomplete(studentIds) {
-                // If student IDs are found, populate the dropdown
+            // Function to update the autocomplete results
+            function updateAutocompleteResults(studentIds) {
+                autocompleteContainer.empty();
+
+                // If student IDs are found, populate the results (limited to 10)
                 if (studentIds.length > 0) {
-                    let optionsHtml = studentIds.map(function(studentId) {
-                        return '<option value="' + studentId + '">';
-                    }).join('');
-                    $('#autocompleteDropdown').html(optionsHtml);
+                    $.each(studentIds, function (index, studentId) {
+                        // Create list items with student IDs
+                        let listItem = $('<li class="list-group-item">' + studentId + '</li>');
+
+                        // Attach a click event to handle selection
+                        listItem.click(function() {
+                            // Set the selected value to the input field
+                            $('#studentIdInput').val(studentId);
+                            // Clear the autocomplete results
+                            autocompleteContainer.empty();
+                        });
+
+                        // Append the list item to the results
+                        autocompleteContainer.append(listItem);
+                    });
+
+                    // Position the autocomplete container below the search box
+                    let inputOffset = $('#studentIdInput').offset();
+                    autocompleteContainer.css({
+                        'top': inputOffset.top + $('#studentIdInput').outerHeight(),
+                        'left': inputOffset.left
+                    });
+
                 } else {
-                    // If no student IDs found, display an error message
-                    $('#autocompleteDropdown').html('<option value="No IDs found" disabled>');
+                    // If no student IDs found, display a message
+                    autocompleteContainer.append('<li class="list-group-item">No IDs found</li>');
+                }
+            }
+
+            function updateStudentInfo(studentInfo) {
+                // Clear the existing content
+                $('#studentInfoContainer').empty();
+
+                // Check if student information is found
+                if (studentInfo) {
+                    $('#studentInfoContainer').append('<p>Names: ' + studentInfo.firstName +' '+ studentInfo.lastName +'</p>');
+                } else {
+                    // If no student information found, display a message
+                    $('#studentInfoContainer').append('<p>No information found for the student ID</p>');
                 }
             }
         });
     </script>
+
+
 </head>
 <body>
 
@@ -54,10 +115,11 @@
             <h2>Search Payment</h2>
             <form class="d-flex" role="search">
                 <input id="studentIdInput" class="form-control me-2" type="search" placeholder="Student ID" aria-label="Search">
-                <button class="btn btn-outline-success" type="submit">Search</button>
                 <!-- Autocomplete dropdown -->
-                <datalist id="autocompleteDropdown"></datalist>
+                <datalist id="autocompleteResults"></datalist>
             </form>
+            <!-- Student information container -->
+            <div id="studentInfoContainer"></div>
         </div>
         <div th:replace="fragments/right-sidebar :: right-sidebar-content"></div>
     </div>
